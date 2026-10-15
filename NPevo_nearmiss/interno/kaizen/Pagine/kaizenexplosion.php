@@ -24,51 +24,43 @@ $k = $id === null ? null : db_riga(
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="../../../css/stile.css">
-<title>Richieste Kaizen</title>
+<link rel="stylesheet" href="../../../css/stile.css?v=<?= (int) @filemtime(__DIR__ . '/../../../css/stile.css') ?>">
+<title>Proposta di miglioramento</title>
 </head>
 <body class="dettaglio">
-<a href="kaizenlist.php"><div class="back-button">◄ INDIETRO</div></a>
-<div class="header">
-<h1>RICHIESTA KAIZEN</h1>
-</div>
-<div class="list-container">
-<div class="elenco">
+<header class="barra">
+    <img class="marchio" src="../../../Images/logo-bianco.png" alt="North Plastik">
+    <span class="barra-titolo">Gestione segnalazioni</span>
+    <div class="destra"><a href="kaizenlist.php" class="btn">Torna all'elenco</a></div>
+</header>
+<main class="pagina">
 <?php if ($k === null): ?>
 <p class="errore">Richiesta non trovata.</p>
 <?php else: ?>
-<div class="item da-incaricare">
-<strong>ID</strong><br> K<?= h($k['ID']) ?>
-<br><br>
-<strong>Richiedente</strong><br><?= h(trim(($k['COGNOME'] ?? '') . ' ' . ($k['NOME'] ?? ''))) ?>
-<br><br>
-<strong>Data</strong><br><?= h(data_ora($k['DATA'])) ?>
-<br><br>
-<strong>Titolo</strong><br><?= h($k['TITOLO']) ?>
-<br><br>
-<strong>Descrizione</strong><br><?= h($k['DESCRIZIONE']) ?>
-<br><br>
-<strong>Categoria</strong><br><?= h($k['CATEGORIA']) ?>
-<br><br>
-<strong>Beneficio</strong><br><?= h($k['BENEFICI']) ?>
-<br><br>
-<br><br>
-<form name="insertstatus" action="insert_status.php" method="post">
-<div class="form-group">
-<label for="stato"><strong>Stato</strong></label>
-<select id="stato" name="stato" required>
-<?= opzioni_stato((int) $k['STATO'], 'Accettata') ?>
-</select>
+<div class="testa">
+    <h1>Proposta K<?= h($k['ID']) ?></h1>
+    <span class="stato-nome <?= classe_stato($k['STATO']) ?>"><?= h(nome_stato($k['STATO'], 'Accettata')) ?></span>
 </div>
-<input type="hidden" name="id" value="<?= h($k['ID']) ?>">
-<input type="hidden" name="csrf" value="<?= h(token_csrf()) ?>">
-<div id="submit-container">
-<button type="submit">AGGIORNA STATO</button>
-</div>
+<div class="scheda">
+<dl class="voci">
+    <div><dt>Titolo</dt><dd><?= h($k['TITOLO']) ?></dd></div>
+    <div><dt>Proponente</dt><dd><?= h(trim(($k['COGNOME'] ?? '') . ' ' . ($k['NOME'] ?? ''))) ?></dd></div>
+    <div><dt>Inserita il</dt><dd><?= h(data_ora($k['DATA'])) ?></dd></div>
+    <div><dt>Categoria</dt><dd><?= h($k['CATEGORIA']) ?></dd></div>
+    <div><dt>Beneficio atteso</dt><dd><?= h($k['BENEFICI']) ?></dd></div>
+    <div><dt>Descrizione</dt><dd><?= h($k['DESCRIZIONE']) ?></dd></div>
+</dl>
+<form name="insertstatus" class="cambio" action="insert_status.php" method="post">
+    <h2 id="stato-titolo">Cambia stato</h2>
+    <fieldset class="stati" aria-labelledby="stato-titolo">
+<?= scelte_stato((int) $k['STATO'], 'Accettata') ?>
+    </fieldset>
+    <input type="hidden" name="id" value="<?= h($k['ID']) ?>">
+    <input type="hidden" name="csrf" value="<?= h(token_csrf()) ?>">
+    <button type="submit" class="pulsante principale">Aggiorna lo stato</button>
 </form>
 </div>
 <?php endif; ?>
-</div>
-</div>
+</main>
 </body>
 </html>

@@ -15,63 +15,67 @@ $pronto = $persone !== null && $reparti !== null;
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="../Images/favicon.png" type="image/png">
-<link rel="stylesheet" href="../css/stile.css">
+<link rel="stylesheet" href="../css/stile.css?v=<?= (int) @filemtime(__DIR__ . '/../css/stile.css') ?>">
 <title>Near Miss - Modulo invio</title>
 </head>
-<body class="modulo nearmiss">
-<div class="wrapper">
-    <div class="logo-container">
-        <img src="Risorse/Images/logo.png" alt="Logo Aziendale">
-        <br><br>
-        <img src="Risorse/Images/nearmiss.png" alt="Logo Near Miss" id="logo">
-    </div>
-    <div class="form-container">
-        <h2>MODULO</h2>
-        <h2>MANCATO INCIDENTE - MANCATO INFORTUNIO</h2>
-        <h3>(Near Miss)</h3>
+<body class="np modulo nearmiss">
+    <header class="barra">
+        <a class="pulsante barra-indietro" href="../index.php">Indietro</a>
+        <div class="barra-modulo">
+            <img class="icona" src="Risorse/Images/nearmiss.png" alt="">
+            <h1 class="barra-titolo">Mancato incidente / infortunio <span class="barra-sigla">Near Miss</span></h1>
+        </div>
+        <img class="marchio" src="../Images/logo-bianco.png" alt="North Plastik">
+    </header>
 <?php if ($pronto): ?>
-        <form name="insertnearmiss" action="insert_nearmiss.php" method="post" autocomplete="off">
-            <div class="container">
-                <div class="left-col">
-                    <div class="form-group">
-                        <label for="matricola">Nome e Cognome</label>
-                        <select id="matricola" name="matricola" required>
-                            <option value="" disabled selected></option>
-                            <?= opzioni_personale($persone) ?>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="reparto">Reparto</label>
-                        <select id="reparto" name="reparto" required>
-                            <option value="" disabled selected></option>
+    <form class="foglio" name="insertnearmiss" action="insert_nearmiss.php" method="post" autocomplete="off">
+        <div class="passi">
+            <section class="passo">
+                <h2 class="passo-titolo"><span class="passo-numero">1</span>Chi segnala</h2>
+                <div class="campo cresce">
+                    <label for="matricola">Nome e cognome</label>
+                    <select id="matricola" name="matricola" required data-persona>
+                        <option value="" disabled selected></option>
+                        <?= opzioni_personale($persone) ?>
+                    </select>
+                </div>
+            </section>
+            <section class="passo">
+                <h2 class="passo-titolo"><span class="passo-numero">2</span>Dove e quando</h2>
+                <div class="campo">
+                    <label for="reparto">Reparto</label>
+                    <select id="reparto" name="reparto" required data-scelte>
+                        <option value="" disabled selected></option>
 <?php foreach ($reparti as $r): ?>
-                            <option value="<?= h((int) $r['REPARTO_ID']) ?>"><?= h($r['REPARTO']) ?></option>
+                        <option value="<?= h((int) $r['REPARTO_ID']) ?>"><?= h(trim((string) $r['REPARTO'])) ?></option>
 <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="data">Data evento</label>
-                        <input type="date" id="data" name="data" required>
-                    </div>
+                    </select>
                 </div>
-                <div class="right-col">
-                    <div class="form-group">
-                        <label for="event-description">Descrizione Evento (max 1000 caratteri)</label>
-                        <textarea id="event-description" name="descrizione" maxlength="1000" required></textarea>
-                    </div>
+                <div class="campo">
+                    <label for="data">Data dell'evento</label>
+                    <input type="date" id="data" name="data" required data-calendario>
                 </div>
-            </div>
-            <div id="submit-container">
-                <button type="submit">INVIA ✔</button>
-            </div>
-        </form>
+            </section>
+            <section class="passo">
+                <h2 class="passo-titolo"><span class="passo-numero">3</span>Cosa è successo</h2>
+                <div class="campo cresce">
+                    <label for="event-description">Descrizione dell'evento</label>
+                    <textarea id="event-description" name="descrizione" maxlength="1000" rows="6" required data-contatore placeholder="Cosa stavi facendo, cosa è successo, cosa poteva succedere"></textarea>
+                </div>
+            </section>
+        </div>
+        <footer class="azioni">
+            <p class="azioni-nota">Tutti i campi sono obbligatori. Dopo l'invio ricevi un numero identificativo.</p>
+            <button type="button" class="pulsante secondario tastiera-pulsante" data-tastiera-pulsante hidden>Tastiera</button>
+            <button type="submit" class="pulsante invio" data-tastiera-invio>Invia segnalazione</button>
+        </footer>
+    </form>
 <?php else: ?>
-        <p class="errore">Errore di connessione al database.</p>
+    <main class="foglio">
+        <p class="avviso">Errore di connessione al database.</p>
+    </main>
 <?php endif; ?>
-    </div>
-</div>
-<div class="back-button-container">
-    <a href="../index.php"><button type="button">◄ INDIETRO</button></a>
-</div>
+    <script src="../js/moduli.js?v=<?= (int) @filemtime(__DIR__ . '/../js/moduli.js') ?>"></script>
+    <script src="../js/tastiera.js?v=<?= (int) @filemtime(__DIR__ . '/../js/tastiera.js') ?>"></script>
 </body>
 </html>

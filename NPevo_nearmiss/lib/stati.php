@@ -30,12 +30,17 @@ function data_ora($v): string
     return $v instanceof DateTimeInterface ? $v->format('d/m/Y H:i:s') : '';
 }
 
-function opzioni_stato(int $attuale, string $etichettaTre): string
+function nome_stato($stato, string $etichettaTre): string
 {
-    $etichette = [1 => 'Nuova', 2 => 'In Carico', 3 => $etichettaTre, 4 => 'Rifiutata'];
+    return [2 => 'In carico', 3 => $etichettaTre, 4 => 'Rifiutata'][(int) $stato] ?? 'Nuova';
+}
+
+function scelte_stato(int $attuale, string $etichettaTre): string
+{
     $html = '';
-    foreach ($etichette as $valore => $etichetta) {
-        $html .= '<option value="' . $valore . '"' . ($valore === $attuale ? ' selected' : '') . '>' . h($etichetta) . "</option>\n";
+    foreach ([1, 2, 3, 4] as $valore) {
+        $html .= '<label class="' . classe_stato($valore) . '"><input type="radio" name="stato" value="' . $valore . '"'
+            . ($valore === $attuale ? ' checked' : '') . ' required>' . h(nome_stato($valore, $etichettaTre)) . "</label>\n";
     }
     return $html;
 }

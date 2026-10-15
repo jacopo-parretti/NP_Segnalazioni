@@ -15,6 +15,6 @@ intestazioni_protette();
 </head>
 <body>
 <p><a href="../login.php">Torna al login</a></p>
-<script src="../js/esci.js"></script>
+<script src="../js/esci.js?v=<?= (int) @filemtime(__DIR__ . '/../js/esci.js') ?>"></script>
 </body>
 </html>

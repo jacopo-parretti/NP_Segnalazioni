@@ -44,28 +44,27 @@ if ($matricola === null || $titolo === null || $descrizione === null || $categor
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="../../Images/favicon.png" type="image/png">
-<link rel="stylesheet" href="../../css/stile.css">
+<link rel="stylesheet" href="../../css/stile.css?v=<?= (int) @filemtime(__DIR__ . '/../../css/stile.css') ?>">
 <title>UPLOAD KAIZEN</title>
 </head>
-<body class="esito">
-<div class="wrapper">
-    <div class="logo-container">
-        <img src="../Risorse/Images/logo.png" alt="Logo Aziendale">
-    </div>
-    <div class="form-container">
+<body class="np esito">
+    <header class="barra">
+        <div class="barra-modulo">
+            <img class="icona" src="../Risorse/Images/kaizen.png" alt="Kaizen">
+            <h1 class="barra-titolo">Proposta di miglioramento</h1>
+        </div>
+        <img class="marchio" src="../../Images/logo-bianco.png" alt="North Plastik">
+    </header>
+    <main class="esito-corpo">
 <?php if ($id !== null): ?>
-        <h2>INSERIMENTO EFFETTUATO CORRETTAMENTE <br> </h2>
-        <h1>IDENTIFICATIVO <br> K<?= h($id) ?></h1>
-        <h2>Si prega gentilmente di appuntare il numero identificativo, successivamente verrà reso disponibile lo stato della richiesta sulle bacheche utilizzando il numero assegnato</h2>
+        <p class="esito-titolo">Proposta inviata correttamente</p>
+        <p class="esito-etichetta">Identificativo</p>
+        <p class="esito-codice">K<?= h($id) ?></p>
+        <p class="esito-testo">Annota il numero identificativo: lo stato della richiesta sarà visibile sulle bacheche con questo numero.</p>
 <?php else: ?>
-        <h2 class="errore"><?= h($messaggio) ?></h2>
+        <p class="avviso"><?= h($messaggio) ?></p>
 <?php endif; ?>
-        <form action="../../index.php" name="indietro" method="get">
-            <div id="submit-container">
-                <button type="submit">TORNA INDIETRO</button>
-            </div>
-        </form>
-    </div>
-</div>
+        <a class="pulsante principale" href="../../index.php">Torna alla pagina iniziale</a>
+    </main>
 </body>
 </html>

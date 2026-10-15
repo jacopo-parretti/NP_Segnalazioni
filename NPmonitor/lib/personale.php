@@ -11,8 +11,10 @@ function opzioni_personale(array $persone): string
 {
     $html = '';
     foreach ($persone as $p) {
-        $html .= '<option value="' . h($p['MATRICOLA']) . '">'
-            . h(strtoupper((string) $p['COGNOME']) . ' ' . strtoupper((string) $p['NOME']))
+        $cognome = strtoupper(trim((string) $p['COGNOME']));
+        $nome = strtoupper(trim((string) $p['NOME']));
+        $html .= '<option value="' . h($p['MATRICOLA']) . '" data-cognome="' . h($cognome) . '" data-nome="' . h($nome) . '">'
+            . h(trim($cognome . ' ' . $nome))
             . "</option>\n";
     }
     return $html;

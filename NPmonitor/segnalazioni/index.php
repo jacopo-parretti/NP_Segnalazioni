@@ -19,119 +19,120 @@ $attivo = $pubblica !== null && $persone !== null;
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="../Images/favicon.png" type="image/png">
-  <link rel="stylesheet" href="../css/stile.css">
+  <link rel="stylesheet" href="../css/stile.css?v=<?= (int) @filemtime(__DIR__ . '/../css/stile.css') ?>">
   <title>Segnalazione Anonima</title>
 </head>
-<body class="segnalazione">
-  <div class="wrapper">
-    <div class="logo-container">
-      <img src="Risorse/Images/logo.png" alt="Logo Aziendale">
-      <img src="Risorse/Images/segnalazioni.png" alt="Segnalazioni" id="logo">
+<body class="np modulo segnalazione">
+  <header class="barra">
+    <a class="pulsante barra-indietro" href="../index.php">Indietro</a>
+    <div class="barra-modulo">
+      <img class="icona" src="Risorse/Images/segnalazioni.png" alt="">
+      <h1 class="barra-titolo">Segnalazione <span class="barra-sigla">anche anonima</span></h1>
     </div>
-    <div class="form-container">
-      <h2>SEGNALAZIONE ANONIMA</h2>
-      <p class="helper">Questo modulo consente di inviare, anche in forma anonima, una segnalazione su temi etici, sicurezza, diritti, ambiente e altro.</p>
+    <img class="marchio" src="../Images/logo-bianco.png" alt="North Plastik">
+  </header>
 <?php if (!$attivo): ?>
-      <p class="avviso">Il canale delle segnalazioni non è ancora attivo. Nessun dato è stato inviato.</p>
-      <div class="actions">
-        <a href="../index.php"><button class="back-btn" type="button">◄ INDIETRO</button></a>
-      </div>
+  <main class="foglio">
+    <p class="avviso">Il canale delle segnalazioni non è ancora attivo. Nessun dato è stato inviato.</p>
+  </main>
 <?php else: ?>
-      <div id="segnalazioneForm" data-chiave="<?= h($pubblica) ?>">
-        <div class="form-group">
-          <label for="tipologia">Tipologia di segnalazione</label>
-          <select id="tipologia" required>
+  <div id="segnalazioneForm" class="foglio" data-chiave="<?= h($pubblica) ?>">
+    <div class="passi">
+      <section class="passo">
+        <h2 class="passo-titolo"><span class="passo-numero">1</span>Di cosa si tratta</h2>
+        <div class="campo">
+          <label for="tipologia">Tipologia</label>
+          <select id="tipologia" required data-scelte="larghe">
             <option value="" disabled selected>Seleziona...</option>
             <option>Parità di genere, Violenza verbale o abusi</option>
             <option>Diritti dei lavoratori, Sicurezza in ambiente di lavoro</option>
             <option>Tutela dell’ambiente</option>
           </select>
         </div>
-        <div class="form-group">
-          <label for="descrizione">Descrivi la tua segnalazione (max 1000 caratteri)</label>
-          <textarea id="descrizione" maxlength="1000" required></textarea>
+        <div class="campo cresce">
+          <label for="descrizione">Descrivi i fatti</label>
+          <textarea id="descrizione" maxlength="1000" rows="6" required data-contatore placeholder="Cosa è successo e chi è coinvolto"></textarea>
         </div>
-        <div class="grid">
-          <div class="form-group">
-            <label for="luogo">Dove sono avvenuti i fatti</label>
-            <textarea id="luogo" maxlength="300" placeholder="Es. reparto, sede, area, contesto" required></textarea>
-          </div>
-          <div>
-            <div class="form-group">
-              <label for="data">Quando sono avvenuti i fatti</label>
-              <div class="grid stretto">
-                <input type="date" id="data" required>
-                <input type="time" id="ora">
-              </div>
-              <span class="inline-help">Se l'ora non è nota puoi lasciarla vuota.</span>
-            </div>
-          </div>
+      </section>
+      <section class="passo">
+        <h2 class="passo-titolo"><span class="passo-numero">2</span>Dove e quando</h2>
+        <div class="campo">
+          <label for="luogo">Dove sono avvenuti i fatti</label>
+          <textarea id="luogo" maxlength="300" rows="2" placeholder="Reparto, sede, area, contesto" required data-contatore></textarea>
         </div>
-        <div class="form-group">
-          <label>Come sei coinvolto</label>
-          <ul class="checklist">
-            <li><input type="radio" id="coinv1" name="coinvolgimento" value="Una voce sentita in giro" required><label for="coinv1">Una voce sentita in giro</label></li>
-            <li><input type="radio" id="coinv2" name="coinvolgimento" value="Diretto coinvolto"><label for="coinv2">Diretto coinvolto</label></li>
-            <li><input type="radio" id="coinv3" name="coinvolgimento" value="Indiretto coinvolto"><label for="coinv3">Indiretto coinvolto</label></li>
-            <li><input type="radio" id="coinv4" name="coinvolgimento" value="Sono la vittima"><label for="coinv4">Sono la vittima</label></li>
-            <li><input type="radio" id="coinv5" name="coinvolgimento" value="Sono testimone"><label for="coinv5">Sono testimone</label></li>
-            <li><input type="radio" id="coinv6" name="coinvolgimento" value="Mi è stato detto da un diretto testimone"><label for="coinv6">Mi è stato detto da un diretto testimone</label></li>
-          </ul>
-        </div>
-        <div class="divider"></div>
-        <div class="grid">
-          <div class="form-group">
-            <label for="prove">Hai delle prove?</label>
-            <select id="prove" required>
-              <option value="" disabled selected>Seleziona...</option>
-              <option value="SI">SI</option>
-              <option value="NO">NO</option>
-            </select>
+        <div class="coppia">
+          <div class="campo">
+            <label for="data">Data</label>
+            <input type="date" id="data" required data-calendario>
           </div>
-          <div class="form-group">
-            <label for="giaSegnalato">Hai già segnalato i fatti a qualcuno?</label>
-            <select id="giaSegnalato" required>
-              <option value="" disabled selected>Seleziona...</option>
-              <option value="SI">SI</option>
-              <option value="NO">NO</option>
-            </select>
+          <div class="campo">
+            <label for="ora">Ora, se la sai</label>
+            <input type="time" id="ora" data-orario data-passo="5">
           </div>
         </div>
-        <div class="divider"></div>
-        <div class="grid">
-          <div class="form-group">
-            <label for="fornireDati">Vuoi fornire dati identificativi?</label>
-            <select id="fornireDati" required>
-              <option value="" disabled selected>Seleziona...</option>
-              <option value="NO">NO</option>
-              <option value="SI">SI</option>
-            </select>
-            <span class="inline-help">Se scegli NO la segnalazione resterà anonima.</span>
+        <div class="campo">
+          <p class="etichetta" id="coinvolgimento-etichetta">Come sei coinvolto</p>
+          <div class="scelte larghe" role="radiogroup" aria-labelledby="coinvolgimento-etichetta">
+            <label class="scelta" for="coinv1"><input type="radio" id="coinv1" name="coinvolgimento" value="Una voce sentita in giro" required><span>Una voce sentita in giro</span></label>
+            <label class="scelta" for="coinv2"><input type="radio" id="coinv2" name="coinvolgimento" value="Diretto coinvolto"><span>Diretto coinvolto</span></label>
+            <label class="scelta" for="coinv3"><input type="radio" id="coinv3" name="coinvolgimento" value="Indiretto coinvolto"><span>Indiretto coinvolto</span></label>
+            <label class="scelta" for="coinv4"><input type="radio" id="coinv4" name="coinvolgimento" value="Sono la vittima"><span>Sono la vittima</span></label>
+            <label class="scelta" for="coinv5"><input type="radio" id="coinv5" name="coinvolgimento" value="Sono testimone"><span>Sono testimone</span></label>
+            <label class="scelta" for="coinv6"><input type="radio" id="coinv6" name="coinvolgimento" value="Mi è stato detto da un diretto testimone"><span>Mi è stato detto da un diretto testimone</span></label>
           </div>
         </div>
-        <div id="datiPersonali" class="hidden">
-          <div class="form-group">
-            <label for="matricolaSelect">Seleziona il tuo nome</label>
-            <select id="matricolaSelect">
-              <option value="" disabled selected>Seleziona...</option>
-              <?= opzioni_personale($persone) ?>
-            </select>
-          </div>
+      </section>
+      <section class="passo">
+        <h2 class="passo-titolo"><span class="passo-numero">3</span>Altre informazioni</h2>
+        <div class="campo in-linea">
+          <label for="prove">Hai delle prove?</label>
+          <select id="prove" required data-scelte>
+            <option value="" disabled selected>Seleziona...</option>
+            <option value="SI">SI</option>
+            <option value="NO">NO</option>
+          </select>
         </div>
-        <p id="errore" class="avviso hidden"></p>
-        <div class="actions">
-          <a href="../index.php"><button class="back-btn" type="button">◄ INDIETRO</button></a>
-          <button type="button" id="invia" disabled>INVIA ✔</button>
+        <div class="campo in-linea">
+          <label for="giaSegnalato">Hai già segnalato i fatti a qualcuno?</label>
+          <select id="giaSegnalato" required data-scelte>
+            <option value="" disabled selected>Seleziona...</option>
+            <option value="SI">SI</option>
+            <option value="NO">NO</option>
+          </select>
         </div>
-      </div>
-<?php endif; ?>
+        <div class="campo in-linea">
+          <label for="fornireDati">Vuoi dire chi sei?</label>
+          <select id="fornireDati" required data-scelte>
+            <option value="" disabled selected>Seleziona...</option>
+            <option value="NO">NO</option>
+            <option value="SI">SI</option>
+          </select>
+        </div>
+        <div id="datiPersonali" class="campo cresce hidden">
+          <label for="matricolaSelect">Il tuo nome</label>
+          <select id="matricolaSelect" data-persona>
+            <option value="" disabled selected>Seleziona...</option>
+            <?= opzioni_personale($persone) ?>
+          </select>
+        </div>
+        <p class="riservatezza">Con NO la segnalazione resta anonima. Il contenuto viene cifrato su questo computer prima dell'invio e lo legge solo il gestore.</p>
+      </section>
     </div>
+    <footer class="azioni">
+      <p id="errore" class="avviso hidden"></p>
+      <p class="azioni-nota">Tutti i campi sono obbligatori, tranne l'ora.</p>
+      <button type="button" class="pulsante secondario tastiera-pulsante" data-tastiera-pulsante hidden>Tastiera</button>
+      <button type="button" id="invia" class="pulsante invio" data-tastiera-invio disabled>Invia segnalazione</button>
+    </footer>
   </div>
+<?php endif; ?>
 <?php if ($attivo): ?>
-  <script src="../js/vendor/nacl-fast.js"></script>
-  <script src="../js/vendor/scrypt.js"></script>
-  <script src="../js/cifra.js"></script>
-  <script src="../js/segnalazione.js"></script>
+  <script src="../js/vendor/nacl-fast.js?v=<?= (int) @filemtime(__DIR__ . '/../js/vendor/nacl-fast.js') ?>"></script>
+  <script src="../js/vendor/scrypt.js?v=<?= (int) @filemtime(__DIR__ . '/../js/vendor/scrypt.js') ?>"></script>
+  <script src="../js/cifra.js?v=<?= (int) @filemtime(__DIR__ . '/../js/cifra.js') ?>"></script>
+  <script src="../js/moduli.js?v=<?= (int) @filemtime(__DIR__ . '/../js/moduli.js') ?>"></script>
+  <script src="../js/tastiera.js?v=<?= (int) @filemtime(__DIR__ . '/../js/tastiera.js') ?>"></script>
+  <script src="../js/segnalazione.js?v=<?= (int) @filemtime(__DIR__ . '/../js/segnalazione.js') ?>"></script>
 <?php endif; ?>
 </body>
 </html>

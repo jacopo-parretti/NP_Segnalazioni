@@ -29,58 +29,50 @@ $motivi = $nm === null ? [] : (db_righe(
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="../../../css/stile.css">
+<link rel="stylesheet" href="../../../css/stile.css?v=<?= (int) @filemtime(__DIR__ . '/../../../css/stile.css') ?>">
 <title>Richiesta Near Miss</title>
 </head>
 <body class="dettaglio nearmiss">
-<a href="nearmisslist.php"><div class="back-button">◄ INDIETRO</div></a>
-<div class="header">
-    <h1>RICHIESTA NEAR MISS</h1>
-</div>
-<div class="list-container">
-<div class="elenco">
+<header class="barra">
+    <img class="marchio" src="../../../Images/logo-bianco.png" alt="North Plastik">
+    <span class="barra-titolo">Gestione segnalazioni</span>
+    <div class="destra"><a href="nearmisslist.php" class="btn">Torna all'elenco</a></div>
+</header>
+<main class="pagina">
 <?php if ($nm === null): ?>
-    <p class="errore">Richiesta non trovata.</p>
+<p class="errore">Richiesta non trovata.</p>
 <?php else: ?>
-    <div class="item da-incaricare">
-        <strong>ID</strong><br> NM<?= h($nm['ID_NM']) ?>
-        <br><br>
-        <strong>Richiedente</strong><br>
-        <?= h(trim(($nm['COGNOME'] ?? '') . ' ' . ($nm['NOME'] ?? ''))) ?>
-        <br><br>
-        <strong>Data</strong><br><?= h(data_ora($nm['DATA'])) ?>
-        <br><br>
-        <strong>Postazione</strong><br><?= h($nm['POSTAZIONE']) ?>
-        <br><br>
-        <strong>Reparto</strong><br>
-        <?= h($nm['NOME_REP']) ?>
-        <br><br>
-        <strong>Motivi</strong><br>
+<div class="testa">
+    <h1>Mancato infortunio NM<?= h($nm['ID_NM']) ?></h1>
+    <span class="stato-nome <?= classe_stato($nm['STATO']) ?>"><?= h(nome_stato($nm['STATO'], 'Conclusa')) ?></span>
+</div>
+<div class="scheda">
+<dl class="voci">
+    <div><dt>Segnalato da</dt><dd><?= h(trim(($nm['COGNOME'] ?? '') . ' ' . ($nm['NOME'] ?? ''))) ?></dd></div>
+    <div><dt>Data</dt><dd><?= h(data_ora($nm['DATA'])) ?></dd></div>
+    <div><dt>Reparto</dt><dd><?= h($nm['NOME_REP']) ?></dd></div>
+    <div><dt>Postazione</dt><dd><?= h($nm['POSTAZIONE']) ?></dd></div>
+<?php if ($motivi !== []): ?>
+    <div><dt>Motivi</dt><dd><ul>
 <?php foreach ($motivi as $m): ?>
-        <?= h($m['MOTIVO']) ?><br>
+        <li><?= h($m['MOTIVO']) ?></li>
 <?php endforeach; ?>
-        <br>
-        <strong>Descrizione evento</strong><br><?= h($nm['DESC_EV']) ?>
-        <br><br>
-        <strong>Contromisure suggerite:</strong><br>
-        <?= h($nm['CONTR_SU']) ?>
-        <br><br>
-        <form name="insertstatus" action="insert_status.php" method="post">
-            <div class="form-group">
-                <label for="stato"><strong>Stato</strong></label>
-                <select id="stato" name="stato" required>
-                    <?= opzioni_stato((int) $nm['STATO'], 'Conclusa') ?>
-                </select>
-            </div>
-            <input type="hidden" name="id" value="<?= h($nm['ID_NM']) ?>">
-            <input type="hidden" name="csrf" value="<?= h(token_csrf()) ?>">
-            <div id="submit-container">
-                <button type="submit">AGGIORNA STATO</button>
-            </div>
-        </form>
-    </div>
+    </ul></dd></div>
 <?php endif; ?>
+    <div><dt>Descrizione</dt><dd><?= h($nm['DESC_EV']) ?></dd></div>
+    <div><dt>Contromisure suggerite</dt><dd><?= h($nm['CONTR_SU']) ?></dd></div>
+</dl>
+<form name="insertstatus" class="cambio" action="insert_status.php" method="post">
+    <h2 id="stato-titolo">Cambia stato</h2>
+    <fieldset class="stati" aria-labelledby="stato-titolo">
+<?= scelte_stato((int) $nm['STATO'], 'Conclusa') ?>
+    </fieldset>
+    <input type="hidden" name="id" value="<?= h($nm['ID_NM']) ?>">
+    <input type="hidden" name="csrf" value="<?= h(token_csrf()) ?>">
+    <button type="submit" class="pulsante principale">Aggiorna lo stato</button>
+</form>
 </div>
-</div>
+<?php endif; ?>
+</main>
 </body>
 </html>

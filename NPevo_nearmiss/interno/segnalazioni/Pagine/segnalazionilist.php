@@ -15,18 +15,25 @@ $schema = schema_assicura();
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="../../../css/stile.css">
-<title>Lista Segnalazioni</title>
+<link rel="stylesheet" href="../../../css/stile.css?v=<?= (int) @filemtime(__DIR__ . '/../../../css/stile.css') ?>">
+<title>Segnalazioni</title>
 </head>
 <body class="segnalazioni" data-csrf="<?= h(token_csrf()) ?>">
-<a href="../../index.php" class="btn">◄ INDIETRO</a>
-<div class="header"><h1>LISTA SEGNALAZIONI</h1></div>
+<header class="barra">
+    <img class="marchio" src="../../../Images/logo-bianco.png" alt="North Plastik">
+    <span class="barra-titolo">Gestione segnalazioni</span>
+    <div class="destra"><a href="../../index.php" class="btn">Indietro</a></div>
+</header>
+<main class="pagina larga">
+<div class="testa"><h1>Segnalazioni</h1></div>
 
 <?php if ($schema['stato'] === 'irraggiungibile'): ?>
 <div class="stato errore">Il database non risponde: le segnalazioni non si possono aprire adesso. Riprova più tardi.</div>
+</main>
 <?php elseif ($schema['stato'] !== 'ok'): ?>
 <div class="stato errore">Le tabelle delle segnalazioni cifrate non esistono e non è stato possibile crearle. Fai lanciare questo SQL su CED_DB e ricarica la pagina:</div>
 <pre class="sql"><?= h($schema['sql']) ?></pre>
+</main>
 <?php else: ?>
 <div id="stato" class="stato">Apertura delle segnalazioni in corso…</div>
 
@@ -40,14 +47,14 @@ $schema = schema_assicura();
 <div id="impostazione" class="pannello hidden">
     <h2>Impostazione della chiave delle segnalazioni</h2>
     <p>Le segnalazioni saranno leggibili solo da qui, con la password di questo utente. Insieme alla chiave viene creata una chiave di emergenza: è l'unico modo per rileggere le segnalazioni se la password si perde o cambia.</p>
-    <button type="button" id="genera" class="btn">Genera la chiave</button>
+    <button type="button" id="genera" class="btn principale">Genera la chiave</button>
     <div id="passoEmergenza" class="hidden">
         <p><strong>Chiave di emergenza.</strong> Stampala e conservala in un luogo chiuso. Non verrà mostrata di nuovo.</p>
         <div id="emergenza" class="emergenza"></div>
         <p><button type="button" id="stampa" class="btn">Stampa</button></p>
         <p><label for="conferma">Per confermare di averla stampata, scrivi l'ultimo gruppo di 4 caratteri:</label></p>
         <p><input type="text" id="conferma" maxlength="4" autocomplete="off"></p>
-        <p><button type="button" id="attiva" class="btn">Conferma e attiva</button></p>
+        <p><button type="button" id="attiva" class="btn principale">Conferma e attiva</button></p>
     </div>
 </div>
 
@@ -60,16 +67,16 @@ $schema = schema_assicura();
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>DATA INSERIMENTO</th>
-                    <th>TIPOLOGIA</th>
-                    <th>LUOGO</th>
-                    <th>DATA EVENTO</th>
-                    <th>ORA EVENTO</th>
-                    <th>DESCRIZIONE</th>
-                    <th>COINVOLGIMENTO</th>
-                    <th>PROVE</th>
-                    <th>SEGNALATO</th>
-                    <th>MATRICOLA</th>
+                    <th>Inserita il</th>
+                    <th>Tipologia</th>
+                    <th>Luogo</th>
+                    <th>Data evento</th>
+                    <th>Ora</th>
+                    <th>Descrizione</th>
+                    <th>Coinvolgimento</th>
+                    <th>Prove</th>
+                    <th>Già segnalato</th>
+                    <th>Matricola</th>
                 </tr>
             </thead>
             <tbody id="righe"></tbody>
@@ -77,6 +84,7 @@ $schema = schema_assicura();
     </div>
     <p id="improntaLista" class="nota"></p>
 </div>
+</main>
 
 <div class="stampa">
     <h1>NP Segnalazioni - chiave di emergenza</h1>
@@ -85,10 +93,10 @@ $schema = schema_assicura();
     <p id="dataStampa"></p>
 </div>
 
-<script src="../../../js/vendor/nacl-fast.js"></script>
-<script src="../../../js/vendor/scrypt.js"></script>
-<script src="../../../js/cifra.js"></script>
-<script src="../../../js/segnalazioni.js"></script>
+<script src="../../../js/vendor/nacl-fast.js?v=<?= (int) @filemtime(__DIR__ . '/../../../js/vendor/nacl-fast.js') ?>"></script>
+<script src="../../../js/vendor/scrypt.js?v=<?= (int) @filemtime(__DIR__ . '/../../../js/vendor/scrypt.js') ?>"></script>
+<script src="../../../js/cifra.js?v=<?= (int) @filemtime(__DIR__ . '/../../../js/cifra.js') ?>"></script>
+<script src="../../../js/segnalazioni.js?v=<?= (int) @filemtime(__DIR__ . '/../../../js/segnalazioni.js') ?>"></script>
 <?php endif; ?>
 </body>
 </html>

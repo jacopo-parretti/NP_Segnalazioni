@@ -9,43 +9,57 @@ require __DIR__ . '/../../../lib/stati.php';
 richiedi_accesso('../../../login.php');
 
 $filtro = filtro_stato();
-$sql = 'SELECT ID_NM, DATA, STATO FROM ' . tabella('NEARMISS') . ($filtro > 0 ? ' WHERE STATO = ?' : '') . ' ORDER BY ID_NM DESC';
-$righe = db_righe($sql, $filtro > 0 ? [$filtro] : []);
+$righe = db_righe(
+    'SELECT N.ID_NM, N.DATA, N.STATO, R.REPARTO AS NOME_REP, P.NOME, P.COGNOME
+     FROM ' . tabella('NEARMISS') . ' AS N
+     OUTER APPLY (SELECT TOP 1 NOME, COGNOME FROM dbo.PERSONALENP_ALL WHERE MATRICOLA = N.MATRICOLA ORDER BY CASE WHEN FINERAPP IS NULL THEN 0 ELSE 1 END, FINERAPP DESC, COGNOME, NOME) AS P
+     LEFT JOIN dbo.NEARMISS_REPARTI AS R ON N.REPARTO = R.REPARTO_ID'
+    . ($filtro > 0 ? ' WHERE N.STATO = ?' : '') . ' ORDER BY N.ID_NM DESC',
+    $filtro > 0 ? [$filtro] : []
+);
 ?>
 <!DOCTYPE html>
 <html lang="it">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="../../../css/stile.css">
-<title>Lista Near Miss</title>
+<link rel="stylesheet" href="../../../css/stile.css?v=<?= (int) @filemtime(__DIR__ . '/../../../css/stile.css') ?>">
+<title>Mancati infortuni</title>
 </head>
 <body class="lista">
-<a href="../../index.php"><div class="back-button">◄ INDIETRO</div></a>
-<div class="header">
-<h1>RICHIESTE NEAR MISS</h1>
+<header class="barra">
+    <img class="marchio" src="../../../Images/logo-bianco.png" alt="North Plastik">
+    <span class="barra-titolo">Gestione segnalazioni</span>
+    <div class="destra"><a href="../../index.php" class="btn">Indietro</a></div>
+</header>
+<main class="pagina">
+<div class="testa">
+    <h1>Mancati infortuni</h1>
+    <nav class="filtro" aria-label="Filtra per stato">
+<?php foreach ([0 => 'Tutti', 1 => 'Nuovi', 2 => 'In carico', 3 => 'Conclusi', 4 => 'Rifiutati'] as $valore => $nome): ?>
+        <a href="?stato=<?= $valore ?>"<?= $filtro === $valore ? ' aria-current="page"' : '' ?>><?= h($nome) ?></a>
+<?php endforeach; ?>
+    </nav>
 </div>
-<div class="legend">
-<a class="nav" href="?stato=0"><div>Tutte le richieste</div></a>
-<a class="nav" href="?stato=1"><div><span class="da-incaricare"></span> Nuove</div></a>
-<a class="nav" href="?stato=2"><div><span class="in-carico"></span> In carico</div></a>
-<a class="nav" href="?stato=3"><div><span class="accettata"></span> Accettata</div></a>
-<a class="nav" href="?stato=4"><div><span class="rifiutata"></span> Rifiutata</div></a>
-</div>
-<div class="list-container">
 <div class="elenco">
 <?php if ($righe === null): ?>
 <p class="errore">Errore di connessione al database.</p>
+<?php elseif ($righe === []): ?>
+<p class="vuoto">Nessun mancato infortunio in questo stato.</p>
 <?php else: ?>
+<div class="elenco-testa"><span>Codice</span><span>Inserito il</span><span>Reparto</span><span>Segnalato da</span><span>Stato</span><span></span></div>
 <?php foreach ($righe as $r): ?>
-<a href="nearmissexplosion.php?id=<?= h($r['ID_NM']) ?>">
-<div class="item <?= classe_stato($r['STATO']) ?>">
-<strong>ID:</strong> NM<?= h($r['ID_NM']) ?> <strong>Data:</strong> <?= h(data_ora($r['DATA'])) ?>
-</div>
+<a class="riga" href="nearmissexplosion.php?id=<?= h($r['ID_NM']) ?>">
+<span class="codice">NM<?= h($r['ID_NM']) ?></span>
+<span class="data"><?= h(data_ora($r['DATA'])) ?></span>
+<span class="testo"><?= h(trim((string) ($r['NOME_REP'] ?? ''))) ?></span>
+<span class="chi"><?= h(trim(($r['COGNOME'] ?? '') . ' ' . ($r['NOME'] ?? ''))) ?></span>
+<span class="stato-nome <?= classe_stato($r['STATO']) ?>"><?= h(nome_stato($r['STATO'], 'Conclusa')) ?></span>
+<span class="apri">Apri</span>
 </a>
 <?php endforeach; ?>
 <?php endif; ?>
 </div>
-</div>
+</main>
 </body>
 </html>

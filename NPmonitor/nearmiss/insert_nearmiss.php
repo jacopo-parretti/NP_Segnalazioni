@@ -71,27 +71,26 @@ if ($matricola === null || $reparto === null || $descrizione === null || $dataEv
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" href="../Images/favicon.png" type="image/png">
-<link rel="stylesheet" href="../css/stile.css">
+<link rel="stylesheet" href="../css/stile.css?v=<?= (int) @filemtime(__DIR__ . '/../css/stile.css') ?>">
 <title>Near Miss - Inserimento</title>
 </head>
-<body class="esito">
-<div class="wrapper">
-    <div class="logo-container">
-        <img src="Risorse/Images/logo.png" alt="Logo Aziendale">
-    </div>
-    <div class="form-container">
+<body class="np esito">
+    <header class="barra">
+        <div class="barra-modulo">
+            <img class="icona" src="Risorse/Images/nearmiss.png" alt="Near Miss">
+            <h1 class="barra-titolo">Mancato incidente / infortunio</h1>
+        </div>
+        <img class="marchio" src="../Images/logo-bianco.png" alt="North Plastik">
+    </header>
+    <main class="esito-corpo">
 <?php if ($id !== null): ?>
-        <h2>INSERIMENTO EFFETTUATO CORRETTAMENTE</h2>
-        <h1>IDENTIFICATIVO<br>NM<?= h($id) ?></h1>
+        <p class="esito-titolo">Segnalazione inviata correttamente</p>
+        <p class="esito-etichetta">Identificativo</p>
+        <p class="esito-codice">NM<?= h($id) ?></p>
 <?php else: ?>
-        <h2 class="errore"><?= h($messaggio) ?></h2>
+        <p class="avviso"><?= h($messaggio) ?></p>
 <?php endif; ?>
-        <form action="../index.php" method="get">
-            <div id="submit-container">
-                <button type="submit">TORNA INDIETRO</button>
-            </div>
-        </form>
-    </div>
-</div>
+        <a class="pulsante principale" href="../index.php">Torna alla pagina iniziale</a>
+    </main>
 </body>
 </html>
