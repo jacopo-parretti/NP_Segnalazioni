@@ -15,7 +15,7 @@ if (!is_array($elenco) || count($elenco) === 0) {
     rispondi_json(['errore' => 'Dati non validi.'], 400);
 }
 foreach ($elenco as $e) {
-    if (!is_array($e) || !is_int($e['id'] ?? null) || $e['id'] <= 0 || !cifrato_valido($e['cifrato'] ?? null)) {
+    if (!is_array($e) || !is_int($e['id'] ?? null) || $e['id'] <= 0 || !is_string($e['impronta'] ?? null) || preg_match('/^[0-9A-F]{64}$/', $e['impronta']) !== 1) {
         rispondi_json(['errore' => 'Dati non validi.'], 400);
     }
 }
@@ -30,9 +30,9 @@ $svuotate = 0;
 $sql = 'UPDATE ' . tabella('SEGNALAZIONI') . '
         SET TIPOLOGIA = NULL, LUOGO = NULL, DATA_EVENTO = NULL, ORA_EVENTO = NULL, DESCRIZIONE = NULL,
             COINVOLGIMENTO = NULL, PROVE = NULL, SEGNALATO = NULL, MATRICOLA = NULL
-        WHERE ID = ? AND CIFRATO = ? AND VERSIONE_CIFRATURA = 1';
+        WHERE ID = ? AND VERSIONE_CIFRATURA = 1 AND LEFT(CONVERT(varchar(128), HASHBYTES(\'SHA2_512\', CIFRATO), 2), 64) = ?';
 foreach ($elenco as $e) {
-    if (db_esegui($sql, [$e['id'], ascii($e['cifrato'])]) !== 1) {
+    if (db_esegui($sql, [$e['id'], ascii($e['impronta'])]) !== 1) {
         sqlsrv_rollback($conn);
         rispondi_json(['errore' => 'La riga S' . $e['id'] . ' non coincide con il cifrato verificato: nulla è stato svuotato.'], 409);
     }

@@ -167,6 +167,19 @@
         return hex.toUpperCase().match(/.{4}/g).join('-');
     }
 
+    function improntaCifrato(cifrato) {
+        const b = new Uint8Array(cifrato.length);
+        for (let i = 0; i < cifrato.length; i++) {
+            b[i] = cifrato.charCodeAt(i) & 0xff;
+        }
+        const h = nacl.hash(b).subarray(0, 32);
+        let hex = '';
+        for (let i = 0; i < h.length; i++) {
+            hex += h[i].toString(16).padStart(2, '0');
+        }
+        return hex.toUpperCase();
+    }
+
     function generaChiaveGestore(chiavePassword) {
         const coppia = nacl.box.keyPair();
         const emergenza = nacl.randomBytes(32);
@@ -267,7 +280,7 @@
                 return { esito: 'diverso', svuotate: 0, id: r.id, campi: diverse, totalePrima: prima.totale, totaleDopo: rilette.totale };
             }
         }
-        const fatto = await api.svuota(daSvuotare.map((r) => ({ id: r.id, cifrato: r.cifrato })));
+        const fatto = await api.svuota(daSvuotare.map((r) => ({ id: r.id, impronta: improntaCifrato(r.cifrato) })));
         return { esito: 'svuotate', svuotate: fatto.svuotate, totalePrima: fatto.prima, totaleDopo: fatto.dopo };
     }
 
@@ -290,6 +303,7 @@
         ultimoGruppo,
         coppiaValida,
         impronta,
+        improntaCifrato,
         generaChiaveGestore,
         cifraSegnalazione,
         formaCifrataValida,

@@ -160,7 +160,7 @@ test('migrazione lato server: il cifrato si riscrive solo con chiaro presente, l
     assert.match(salva, /WHERE ID = \? AND CIFRATO IS NULL/);
     const svuota = fs.readFileSync(path.join(pagine, 'api_svuota_chiaro.php'), 'utf8');
     assert.ok(!svuota.includes('DATA_INSERIMENTO'));
-    assert.match(svuota, /WHERE ID = \? AND CIFRATO = \?/);
+    assert.match(svuota, /WHERE ID = \? AND VERSIONE_CIFRATURA = 1 AND LEFT\(CONVERT\(varchar\(128\), HASHBYTES\(\\'SHA2_512\\', CIFRATO\), 2\), 64\) = \?/);
 });
 
 function dbProva(comando) {

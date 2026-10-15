@@ -4,7 +4,13 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 
+const crypto = require('node:crypto');
+
 const C = require(path.join(__dirname, '..', 'NPmonitor', 'js', 'cifra.js'));
+
+function sha512(testo) {
+    return crypto.createHash('sha512').update(testo, 'latin1').digest('hex').toUpperCase().slice(0, 64);
+}
 
 function storico() {
     return [
@@ -44,8 +50,9 @@ function dbFinto(righe, opzioni) {
         async svuota(elenco) {
             stato.svuotamenti++;
             const prima = stato.righe.length;
+            stato.ultimoElenco = elenco;
             for (const e of elenco) {
-                const r = stato.righe.find((x) => x.id === e.id && x.cifrato === e.cifrato);
+                const r = stato.righe.find((x) => x.id === e.id && x.cifrato && sha512(x.cifrato) === e.impronta);
                 if (!r) {
                     throw new Error('riga non coincidente');
                 }
@@ -165,4 +172,25 @@ test('le righe nuove gia cifrate senza chiaro non vengono toccate', async () => 
     assert.equal(esito.esito, 'nulla');
     assert.equal(db.salvate, 0);
     assert.equal(db.righe[0].cifrato, nuova.cifrato);
+});
+
+test('svuotamento: si mandano solo id e impronta, anche 50 segnalazioni stanno sotto gli 8 KB del proxy', async () => {
+    const g = gestore();
+    const base = storico()[0].chiaro;
+    const righe = Array.from({ length: 50 }, (_, i) => ({ id: i + 1, chiaro: Object.assign({}, base, { descrizione: 'x'.repeat(900) }), cifrato: null }));
+    const db = dbFinto(righe);
+    const esito = await C.migraStorico(db.api, g.pubblica, g.segreta);
+    assert.equal(esito.esito, 'svuotate');
+    assert.equal(esito.svuotate, 50);
+    for (const e of db.ultimoElenco) {
+        assert.deepEqual(Object.keys(e).sort(), ['id', 'impronta']);
+        assert.match(e.impronta, /^[0-9A-F]{64}$/);
+    }
+    const corpo = new URLSearchParams({ csrf: 'a'.repeat(64), righe: JSON.stringify(db.ultimoElenco) }).toString();
+    assert.ok(corpo.length < 8 * 1024, 'corpo di ' + corpo.length + ' byte');
+});
+
+test('improntaCifrato coincide con SHA-512 calcolato altrove', () => {
+    const c = C.cifraSegnalazione({ descrizione: 'prova' }, gestore().pubblica);
+    assert.equal(C.improntaCifrato(c), sha512(c));
 });
