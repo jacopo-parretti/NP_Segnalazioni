@@ -80,6 +80,8 @@ test('S8/D4: la normalizzazione delle righe storiche non perde nulla', () => {
         data_inserimento: '2025-10-23',
         cifrato: null,
         versione: null,
+        contromisure_cifrato: null,
+        costi_cifrato: null,
         chiaro: {
             tipologia: 'Tutela dell’ambiente',
             descrizione: 'l\'operatore "x" è caduto',
@@ -116,9 +118,12 @@ test('G1/D2: md5 calcolato nel browser uguale a md5(stripslashes()) del vecchio 
 test('P3/T8: schema e nomi delle tabelle scritte vengono da config.php', () => {
     const s = JSON.parse(php('schema'));
     assert.equal(s.tabella, 'dbo.[KAIZEN_PROVA]');
-    assert.equal(s.istruzioni.length, 3);
+    assert.equal(s.istruzioni.length, 9);
     assert.ok(s.istruzioni.every((i) => i.includes('_PROVA')));
-    assert.ok(s.istruzioni[2].includes('SEGNALAZIONI_CHIAVI_PROVA'));
+    assert.ok(s.istruzioni[8].includes('SEGNALAZIONI_CHIAVI_PROVA'));
+    for (const [tabella, colonna] of [['KAIZEN_PROVA', 'AVANZAMENTO'], ['KAIZEN_PROVA', 'COSTI_IMPLEMENTAZIONE'], ['NEARMISS_PROVA', 'CONTROMISURE_APPLICATE'], ['NEARMISS_PROVA', 'COSTI_IMPLEMENTAZIONE'], ['SEGNALAZIONI_PROVA', 'CONTROMISURE_CIFRATO'], ['SEGNALAZIONI_PROVA', 'COSTI_CIFRATO']]) {
+        assert.ok(s.istruzioni.some((i) => i.includes('[' + tabella + '] ADD ' + colonna + ' ')), tabella + '.' + colonna);
+    }
     assert.ok(!s.istruzioni.join(' ').match(/\b(DROP|DELETE|TRUNCATE)\b/i));
     assert.deepEqual(JSON.parse(php('nome_tabella_cattivo')), { eccezione: true });
 });
@@ -243,16 +248,16 @@ test('S7: export Excel con intestazione blu, bordi neri, colonne di oggi e ID co
     const nuova = { id: 15, data_inserimento: '2026-10-15', cifrato: C.cifraSegnalazione({ tipologia: 'T', descrizione: '<b>x</b> & "y"', luogo: 'L', data_evento: '2026-10-14', ora_evento: '08:05', coinvolgimento: 'C', prove: 'SI', segnalato: 'NO', matricola: null }, g.pubblica), chiaro: null };
     const storica = { id: 3, data_inserimento: '2025-10-23', cifrato: null, chiaro: { tipologia: null, descrizione: 'd', luogo: null, data_evento: null, ora_evento: null, coinvolgimento: null, prove: null, segnalato: 'SI', matricola: '1234', data_inserimento: '2025-10-23 08:12:44.123000' } };
     const tabella = [nuova, storica].map((r) => V.colonne(r, V.recordDi(r, g.segreta)));
-    assert.deepEqual(tabella[0], ['S15', '15/10/2026', 'T', 'L', '14/10/2026', '08:05', '<b>x</b> & "y"', 'C', 'SI', 'NO', '']);
-    assert.deepEqual(tabella[1], ['S3', '23/10/2025 08:12:44', '', '', '', '', 'd', '', 'NO', 'SI', '1234']);
+    assert.deepEqual(tabella[0], ['S15', '15/10/2026', 'T', 'L', '14/10/2026', '08:05', '<b>x</b> & "y"', 'C', 'SI', 'NO', '', '', '']);
+    assert.deepEqual(tabella[1], ['S3', '23/10/2025 08:12:44', '', '', '', '', 'd', '', 'NO', 'SI', '1234', '', '']);
     const file = apriZip(V.xlsx(tabella));
     assert.deepEqual(Object.keys(file).sort(), ['[Content_Types].xml', '_rels/.rels', 'xl/_rels/workbook.xml.rels', 'xl/styles.xml', 'xl/workbook.xml', 'xl/worksheets/sheet1.xml']);
     const foglio = file['xl/worksheets/sheet1.xml'];
-    assert.equal((foglio.match(/<row r="1">.*?<\/row>/)[0].match(/s="1"/g) || []).length, 11);
+    assert.equal((foglio.match(/<row r="1">.*?<\/row>/)[0].match(/s="1"/g) || []).length, 13);
     assert.ok(foglio.includes('<t xml:space="preserve">S15</t>'));
     assert.ok(foglio.includes('&lt;b&gt;x&lt;/b&gt; &amp; &quot;y&quot;'));
     assert.ok(!foglio.includes('<b>x</b>'));
-    assert.ok(foglio.includes('<autoFilter ref="A1:K3"/>'));
+    assert.ok(foglio.includes('<autoFilter ref="A1:M3"/>'));
     assert.ok(file['xl/styles.xml'].includes('FF2E3E6A'));
     assert.ok(file['xl/workbook.xml'].includes('name="Segnalazioni"'));
     assert.match(X.nomeFile('segnalazioni', new Date(2026, 9, 15, 9, 5, 7)), /^segnalazioni_20261015_090507\.xlsx$/);
@@ -285,4 +290,22 @@ test('xlsx: CRC32 standard, colonne oltre la Z, caratteri non validi in XML tolt
     assert.equal(X.colonna(26), 'AA');
     const file = apriZip(X.creaXlsx(['a'], [['x\u0001y\nz']], 'Prova'));
     assert.ok(file['xl/worksheets/sheet1.xml'].includes('<t xml:space="preserve">xy\nz</t>'));
+});
+
+test('campi di gestione delle segnalazioni: cifrati per il gestore, decifrati in lista ed export', () => {
+    const g = gestore();
+    const altro = C.generaChiaveGestore(new Uint8Array(32).fill(6));
+    const riga = { id: 4, data_inserimento: '2026-10-15', cifrato: null, chiaro: { descrizione: 'd' }, contromisure_cifrato: C.cifraSegnalazione({ testo: 'Formazione è fatta' }, g.pubblica), costi_cifrato: C.cifraSegnalazione({ testo: '1.200 €' }, altro.pubblica) };
+    const gestione = V.gestioneDi(riga, g.segreta);
+    assert.deepEqual(gestione, ['Formazione è fatta', null]);
+    const colonne = V.colonne(riga, V.recordDi(riga, g.segreta), gestione);
+    assert.equal(colonne.length, 13);
+    assert.deepEqual(colonne.slice(11), ['Formazione è fatta', '']);
+    assert.deepEqual(V.gestioneDi({ id: 5 }, g.segreta), ['', '']);
+});
+
+test('campi modificabili: un salvataggio troppo grande per il proxy viene fermato prima di partire', () => {
+    const Kc = require(path.join(__dirname, '..', 'NPevo_nearmiss', 'js', 'campi.js'));
+    assert.equal(Kc.corpoTroppoGrande(new URLSearchParams({ csrf: 'a'.repeat(64), valore: 'è'.repeat(1000) }).toString()), false);
+    assert.equal(Kc.corpoTroppoGrande(new URLSearchParams({ valore: '😀'.repeat(1000) }).toString()), true);
 });

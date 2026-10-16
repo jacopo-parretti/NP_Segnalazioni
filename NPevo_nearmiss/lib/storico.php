@@ -57,6 +57,8 @@ function riga_segnalazione(array $r): array
         'data_inserimento' => $r['DATA_INSERIMENTO'] instanceof DateTimeInterface ? $r['DATA_INSERIMENTO']->format('Y-m-d') : null,
         'cifrato' => testo_o_null($r['CIFRATO']),
         'versione' => $r['VERSIONE_CIFRATURA'] === null ? null : (int) $r['VERSIONE_CIFRATURA'],
+        'contromisure_cifrato' => testo_o_null($r['CONTROMISURE_CIFRATO'] ?? null),
+        'costi_cifrato' => testo_o_null($r['COSTI_CIFRATO'] ?? null),
         'chiaro' => !$haChiaro ? null : [
             'tipologia' => testo_o_null($r['TIPOLOGIA']),
             'descrizione' => testo_o_null($r['DESCRIZIONE']),
@@ -75,7 +77,7 @@ function riga_segnalazione(array $r): array
 function segnalazioni_tutte(): ?array
 {
     $righe = db_righe(
-        'SELECT ID, DATA_INSERIMENTO, TIPOLOGIA, LUOGO, DATA_EVENTO, ORA_EVENTO, DESCRIZIONE, COINVOLGIMENTO, PROVE, SEGNALATO, MATRICOLA, CIFRATO, VERSIONE_CIFRATURA
+        'SELECT ID, DATA_INSERIMENTO, TIPOLOGIA, LUOGO, DATA_EVENTO, ORA_EVENTO, DESCRIZIONE, COINVOLGIMENTO, PROVE, SEGNALATO, MATRICOLA, CIFRATO, VERSIONE_CIFRATURA, CONTROMISURE_CIFRATO, COSTI_CIFRATO
          FROM ' . tabella('SEGNALAZIONI') . ' ORDER BY ID DESC'
     );
     return $righe === null ? null : array_map('riga_segnalazione', $righe);

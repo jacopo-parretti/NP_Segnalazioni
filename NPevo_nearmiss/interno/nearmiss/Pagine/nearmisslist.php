@@ -5,12 +5,15 @@ declare(strict_types=1);
 require __DIR__ . '/../../../lib/db.php';
 require __DIR__ . '/../../../lib/auth.php';
 require __DIR__ . '/../../../lib/stati.php';
+require __DIR__ . '/../../../lib/schema.php';
+require __DIR__ . '/../../../lib/campi.php';
 
 richiedi_accesso('../../../login.php');
 
+$schema = schema_assicura();
 $filtro = filtro_stato();
-$righe = db_righe(
-    'SELECT N.ID_NM, N.DATA, N.STATO, R.REPARTO AS NOME_REP, P.NOME, P.COGNOME
+$righe = $schema['stato'] !== 'ok' ? null : db_righe(
+    'SELECT N.ID_NM, N.DATA, N.STATO, N.CONTROMISURE_APPLICATE, N.COSTI_IMPLEMENTAZIONE, R.REPARTO AS NOME_REP, P.NOME, P.COGNOME
      FROM ' . tabella('NEARMISS') . ' AS N
      OUTER APPLY (SELECT TOP 1 NOME, COGNOME FROM dbo.PERSONALENP_ALL WHERE MATRICOLA = N.MATRICOLA ORDER BY CASE WHEN FINERAPP IS NULL THEN 0 ELSE 1 END, FINERAPP DESC, COGNOME, NOME) AS P
      LEFT JOIN dbo.NEARMISS_REPARTI AS R ON N.REPARTO = R.REPARTO_ID'
@@ -26,13 +29,13 @@ $righe = db_righe(
 <link rel="stylesheet" href="../../../css/stile.css?v=<?= (int) @filemtime(__DIR__ . '/../../../css/stile.css') ?>">
 <title>Mancati infortuni</title>
 </head>
-<body class="lista">
+<body class="lista con-campi" data-csrf="<?= h(token_csrf()) ?>">
 <header class="barra">
     <img class="marchio" src="../../../Images/logo-bianco.png" alt="North Plastik">
     <span class="barra-titolo">Gestione segnalazioni</span>
     <div class="destra"><a href="../../index.php" class="btn">Indietro</a></div>
 </header>
-<main class="pagina">
+<main class="pagina larga">
 <div class="testa">
     <h1>Mancati infortuni</h1>
     <nav class="filtro" aria-label="Filtra per stato">
@@ -42,27 +45,34 @@ $righe = db_righe(
     </nav>
     <button type="button" class="btn" data-export="../../api_export.php?tipo=nearmiss&amp;stato=<?= $filtro ?>">Esporta Excel</button>
 </div>
+<?php if ($schema['stato'] === 'mancante'): ?>
+<p class="errore">Mancano delle colonne nel database e non è stato possibile crearle. Fai lanciare questo SQL su CED_DB e ricarica la pagina:</p>
+<pre class="sql"><?= h($schema['sql']) ?></pre>
+<?php endif; ?>
 <div class="elenco">
 <?php if ($righe === null): ?>
 <p class="errore">Errore di connessione al database.</p>
 <?php elseif ($righe === []): ?>
 <p class="vuoto">Nessun mancato infortunio in questo stato.</p>
 <?php else: ?>
-<div class="elenco-testa"><span>Codice</span><span>Inserito il</span><span>Reparto</span><span>Segnalato da</span><span>Stato</span><span></span></div>
+<div class="elenco-testa"><span>Codice</span><span>Inserito il</span><span>Reparto</span><span>Segnalato da</span><span>Stato</span><span>Contromisure applicate</span><span>Costi implementazione</span><span></span></div>
 <?php foreach ($righe as $r): ?>
-<a class="riga" href="nearmissexplosion.php?id=<?= h($r['ID_NM']) ?>">
-<span class="codice">NM<?= h($r['ID_NM']) ?></span>
+<div class="riga">
+<a class="codice" href="nearmissexplosion.php?id=<?= h($r['ID_NM']) ?>">NM<?= h($r['ID_NM']) ?></a>
 <span class="data"><?= h(data_ora($r['DATA'])) ?></span>
 <span class="testo"><?= h(trim((string) ($r['NOME_REP'] ?? ''))) ?></span>
 <span class="chi"><?= h(trim(($r['COGNOME'] ?? '') . ' ' . ($r['NOME'] ?? ''))) ?></span>
 <span class="stato-nome <?= classe_stato($r['STATO']) ?>"><?= h(nome_stato($r['STATO'], 'Conclusa')) ?></span>
-<span class="apri">Apri</span>
-</a>
+<?= cella_modificabile('nearmiss', (int) $r['ID_NM'], 'contromisure', $r['CONTROMISURE_APPLICATE'], 'Contromisure applicate NM' . $r['ID_NM'], '../../api_campo.php') ?>
+<?= cella_modificabile('nearmiss', (int) $r['ID_NM'], 'costi', $r['COSTI_IMPLEMENTAZIONE'], 'Costi implementazione NM' . $r['ID_NM'], '../../api_campo.php') ?>
+<a class="apri" href="nearmissexplosion.php?id=<?= h($r['ID_NM']) ?>">Apri</a>
+</div>
 <?php endforeach; ?>
 <?php endif; ?>
 </div>
 </main>
 <script src="../../../js/xlsx.js?v=<?= (int) @filemtime(__DIR__ . '/../../../js/xlsx.js') ?>"></script>
 <script src="../../../js/esporta.js?v=<?= (int) @filemtime(__DIR__ . '/../../../js/esporta.js') ?>"></script>
+<script src="../../../js/campi.js?v=<?= (int) @filemtime(__DIR__ . '/../../../js/campi.js') ?>"></script>
 </body>
 </html>

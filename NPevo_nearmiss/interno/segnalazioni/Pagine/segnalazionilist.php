@@ -77,6 +77,8 @@ $schema = schema_assicura();
                     <th>Prove</th>
                     <th>Già segnalato</th>
                     <th>Matricola</th>
+                    <th>Contromisure applicate</th>
+                    <th>Costi implementazione</th>
                 </tr>
             </thead>
             <tbody id="righe"></tbody>
@@ -97,6 +99,7 @@ $schema = schema_assicura();
 <script src="../../../js/vendor/scrypt.js?v=<?= (int) @filemtime(__DIR__ . '/../../../js/vendor/scrypt.js') ?>"></script>
 <script src="../../../js/cifra.js?v=<?= (int) @filemtime(__DIR__ . '/../../../js/cifra.js') ?>"></script>
 <script src="../../../js/xlsx.js?v=<?= (int) @filemtime(__DIR__ . '/../../../js/xlsx.js') ?>"></script>
+<script src="../../../js/campi.js?v=<?= (int) @filemtime(__DIR__ . '/../../../js/campi.js') ?>"></script>
 <script src="../../../js/segnalazioni.js?v=<?= (int) @filemtime(__DIR__ . '/../../../js/segnalazioni.js') ?>"></script>
 <?php endif; ?>
 </body>

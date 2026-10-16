@@ -1,13 +1,14 @@
 (function (radice, fabbrica) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = fabbrica(require('./cifra.js'), require('./xlsx.js'));
+        module.exports = fabbrica(require('./cifra.js'), require('./xlsx.js'), require('./campi.js'));
     } else {
-        fabbrica(radice.NPCifra, radice.NPXlsx).avvia(radice.document, radice.sessionStorage);
+        fabbrica(radice.NPCifra, radice.NPXlsx, radice.NPCampi).avvia(radice.document, radice.sessionStorage);
     }
-})(typeof self !== 'undefined' ? self : this, function (C, X) {
+})(typeof self !== 'undefined' ? self : this, function (C, X, K) {
     'use strict';
 
-    const INTESTAZIONI = ['ID', 'DATA INSERIMENTO', 'TIPOLOGIA', 'LUOGO', 'DATA EVENTO', 'ORA EVENTO', 'DESCRIZIONE', 'COINVOLGIMENTO', 'PROVE', 'SEGNALATO', 'MATRICOLA'];
+    const INTESTAZIONI = ['ID', 'DATA INSERIMENTO', 'TIPOLOGIA', 'LUOGO', 'DATA EVENTO', 'ORA EVENTO', 'DESCRIZIONE', 'COINVOLGIMENTO', 'PROVE', 'SEGNALATO', 'MATRICOLA', 'CONTROMISURE APPLICATE', 'COSTI IMPLEMENTAZIONE'];
+    const GESTIONE = [{ campo: 'contromisure', chiave: 'contromisure_cifrato', etichetta: 'Contromisure applicate' }, { campo: 'costi', chiave: 'costi_cifrato', etichetta: 'Costi implementazione' }];
 
     function data(t) {
         if (typeof t !== 'string' || t.length < 10) {
@@ -42,9 +43,21 @@
         return {};
     }
 
-    function colonne(riga, record) {
+    function gestioneDi(riga, segreta) {
+        return GESTIONE.map(function (g) {
+            const c = riga[g.chiave];
+            if (!c) {
+                return '';
+            }
+            const r = C.decifraSegnalazione(c, segreta);
+            return r && typeof r.testo === 'string' ? r.testo : null;
+        });
+    }
+
+    function colonne(riga, record, gestione) {
+        const extra = (gestione || ['', '']).map((v) => (v === null ? '' : v));
         if (!record) {
-            return ['S' + riga.id, data(riga.data_inserimento), '', '', '', '', 'Non decifrabile con questa chiave', '', '', '', ''];
+            return ['S' + riga.id, data(riga.data_inserimento), '', '', '', '', 'Non decifrabile con questa chiave', '', '', '', ''].concat(extra);
         }
         return [
             'S' + riga.id,
@@ -58,7 +71,7 @@
             record.prove === 'SI' ? 'SI' : 'NO',
             record.segnalato === 'SI' ? 'SI' : 'NO',
             testo(record.matricola)
-        ];
+        ].concat(extra);
     }
 
     function xlsx(tabella) {
@@ -131,18 +144,54 @@
             }
         }
 
-        function disegna(righe, segreta) {
-            tabella = righe.map((r) => colonne(r, recordDi(r, segreta)));
-            corpo.textContent = '';
-            for (const r of tabella) {
-                const tr = doc.createElement('tr');
-                for (const c of r) {
-                    const td = doc.createElement('td');
-                    td.textContent = c;
-                    tr.appendChild(td);
-                }
-                corpo.appendChild(tr);
+        function cellaGestione(td, riga, indice, posizione, leggibile, pubblica) {
+            const g = GESTIONE[indice];
+            const box = doc.createElement('span');
+            box.className = 'cella-campo';
+            const area = doc.createElement('textarea');
+            area.className = 'campo-riga';
+            area.rows = 2;
+            area.maxLength = 1000;
+            area.value = tabella[posizione][11 + indice];
+            area.setAttribute('aria-label', g.etichetta + ' S' + riga.id);
+            const esito = doc.createElement('span');
+            esito.className = 'campo-stato';
+            esito.setAttribute('aria-live', 'polite');
+            box.append(area, esito);
+            td.appendChild(box);
+            if (!leggibile) {
+                area.disabled = true;
+                esito.textContent = 'Non decifrabile con questa chiave';
+                return;
             }
+            K.collega(area, async function (valore) {
+                const pulito = valore.trim();
+                await richiesta('api_gestione.php', {
+                    id: String(riga.id),
+                    campo: g.campo,
+                    cifrato: pulito === '' ? '' : C.cifraSegnalazione({ testo: pulito }, pubblica)
+                });
+                tabella[posizione][11 + indice] = pulito;
+            });
+        }
+
+        function disegna(righe, segreta, pubblica) {
+            const gestioni = righe.map((r) => gestioneDi(r, segreta));
+            tabella = righe.map((r, i) => colonne(r, recordDi(r, segreta), gestioni[i]));
+            corpo.textContent = '';
+            tabella.forEach(function (r, i) {
+                const tr = doc.createElement('tr');
+                r.forEach(function (c, j) {
+                    const td = doc.createElement('td');
+                    if (j >= 11) {
+                        cellaGestione(td, righe[i], j - 11, i, gestioni[i][j - 11] !== null, pubblica);
+                    } else {
+                        td.textContent = c;
+                    }
+                    tr.appendChild(td);
+                });
+                corpo.appendChild(tr);
+            });
             lista.classList.remove('hidden');
         }
 
@@ -162,7 +211,7 @@
                 avviso = 'Cifratura dello storico non completata: ' + e.message;
             }
             const dati = await api.leggi();
-            disegna(dati.righe, segreta);
+            disegna(dati.righe, segreta, pubblica);
             if (avviso) {
                 messaggio(avviso, errore);
             } else {
@@ -301,5 +350,5 @@
         inizia().catch((e) => messaggio('Errore: ' + e.message, true));
     }
 
-    return { colonne, xlsx, recordDi, avvia };
+    return { colonne, gestioneDi, xlsx, recordDi, avvia };
 });

@@ -163,6 +163,36 @@ body.home .modulo:hover .modulo-piede { background: var(--blu-scuro); }
 .riga .testo { font-weight: 600; }
 .riga .apri { justify-self: end; color: var(--blu); font-weight: 700; }
 .riga:hover .apri { text-decoration: underline; text-underline-offset: 3px; }
+.riga a.codice { text-decoration: none; }
+.riga a.codice:hover, .riga a.apri:hover { text-decoration: underline; text-underline-offset: 3px; }
+.riga a.apri { text-decoration: none; }
+body.con-campi .elenco { overflow-x: auto; }
+body.con-campi .elenco-testa, body.con-campi .riga {
+    grid-template-columns: 5.5rem 9.5rem minmax(10rem, 1.2fr) minmax(9rem, 11rem) 6.5rem minmax(14rem, 1.5fr) minmax(11rem, 1fr) 3rem;
+    min-width: 82rem;
+}
+body.con-campi .riga { align-items: start; padding-top: 0.7rem; padding-bottom: 0.7rem; }
+body.con-campi .riga > .codice, body.con-campi .riga > .data, body.con-campi .riga > .testo, body.con-campi .riga > .chi, body.con-campi .riga > .stato-nome, body.con-campi .riga > .apri { padding-top: 0.55rem; }
+body.con-campi .riga:hover { background: transparent; }
+.cella-campo { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
+.campo-riga {
+    display: block;
+    width: 100%;
+    min-height: 2.6rem;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--linea);
+    border-radius: 0.3rem;
+    background: #fbfcfe;
+    color: var(--testo);
+    font: inherit;
+    font-size: 0.95rem;
+    line-height: 1.35;
+    resize: vertical;
+}
+.campo-riga:hover { border-color: var(--testo-2); }
+.campo-riga:focus { border-color: var(--blu); outline: none; background: var(--superficie); box-shadow: 0 0 0 3px rgba(35, 53, 104, 0.16); }
+.campo-stato { min-height: 1.1rem; color: var(--testo-2); font-size: 0.8rem; }
+.campo-stato.errore { padding: 0; color: var(--errore); font-weight: 700; }
 .stato-nome { font-weight: 700; }
 .stato-nome.da-incaricare { color: var(--nuova); }
 .stato-nome.in-carico { color: var(--in-carico); }
@@ -204,6 +234,8 @@ body.segnalazioni tbody td { padding: 0.75rem 0.9rem; border-bottom: 1px solid v
 body.segnalazioni tbody td:first-child { font-weight: 800; color: var(--blu); }
 body.segnalazioni tbody td:first-child, body.segnalazioni tbody td:nth-child(2), body.segnalazioni tbody td:nth-child(5), body.segnalazioni tbody td:nth-child(6) { white-space: nowrap; font-variant-numeric: tabular-nums; }
 body.segnalazioni tbody tr:hover td { background: #f4f6fb; }
+body.segnalazioni tbody td .cella-campo { min-width: 15rem; }
+body.segnalazioni table { min-width: 100rem; }
 body.segnalazioni .nota { margin: 0; padding: 0.8rem 1.2rem; color: var(--testo-2); font-size: 0.9rem; }
 body.segnalazioni .pannello { max-width: 50rem; margin: 0 0 1.5rem; padding: 1.6rem 1.75rem; border: 1px solid var(--linea); border-radius: 0.6rem; background: var(--superficie); }
 body.segnalazioni .pannello h2 { margin: 0 0 0.75rem; font-size: 1.25rem; color: var(--blu); }
