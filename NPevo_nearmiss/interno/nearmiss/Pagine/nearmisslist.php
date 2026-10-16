@@ -40,6 +40,7 @@ $righe = db_righe(
         <a href="?stato=<?= $valore ?>"<?= $filtro === $valore ? ' aria-current="page"' : '' ?>><?= h($nome) ?></a>
 <?php endforeach; ?>
     </nav>
+    <button type="button" class="btn" data-export="../../api_export.php?tipo=nearmiss&amp;stato=<?= $filtro ?>">Esporta Excel</button>
 </div>
 <div class="elenco">
 <?php if ($righe === null): ?>
@@ -61,5 +62,7 @@ $righe = db_righe(
 <?php endif; ?>
 </div>
 </main>
+<script src="../../../js/xlsx.js?v=<?= (int) @filemtime(__DIR__ . '/../../../js/xlsx.js') ?>"></script>
+<script src="../../../js/esporta.js?v=<?= (int) @filemtime(__DIR__ . '/../../../js/esporta.js') ?>"></script>
 </body>
 </html>

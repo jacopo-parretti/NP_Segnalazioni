@@ -287,7 +287,7 @@ controllo('vendor, cifra.js e librerie comuni identici nelle due cartelle', () =
 
 controllo('nessun URL esterno nelle pagine', () => {
     for (const f of nostri.filter((x) => CARTELLE.some((c) => x.startsWith(c + '/')))) {
-        const t = leggi(f);
+        const t = leggi(f).replace(/http:\/\/schemas\.openxmlformats\.org\/[A-Za-z0-9/.-]+/g, '');
         if (/https?:\/\//i.test(t) || /(src|href|action)\s*=\s*["']?\/\//i.test(t) || /@import/i.test(t) || /url\(\s*["']?(https?:)?\/\//i.test(t)) {
             throw new Error(f);
         }

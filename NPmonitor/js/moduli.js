@@ -271,8 +271,11 @@
             }
 
             function elenca() {
-                mostrati = filtraPersone(persone, filtro.value);
+                const scritto = filtro.value.trim() !== '';
+                mostrati = scritto ? filtraPersone(persone, filtro.value) : [];
                 elenco.textContent = '';
+                elenco.hidden = mostrati.length === 0;
+                filtro.setAttribute('aria-expanded', mostrati.length > 0 ? 'true' : 'false');
                 mostrati.forEach(function (p, i) {
                     const b = pulsante('persona-voce');
                     if (p.nome) {
@@ -286,7 +289,7 @@
                     b.addEventListener('click', () => scegli(p));
                     elenco.appendChild(b);
                 });
-                nessuno.hidden = mostrati.length > 0;
+                nessuno.hidden = !scritto || mostrati.length > 0;
                 attivo = -1;
                 elenco.scrollTop = 0;
             }

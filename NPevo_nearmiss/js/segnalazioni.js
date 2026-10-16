@@ -1,15 +1,12 @@
 (function (radice, fabbrica) {
     if (typeof module === 'object' && module.exports) {
-        module.exports = fabbrica(require('./cifra.js'));
+        module.exports = fabbrica(require('./cifra.js'), require('./xlsx.js'));
     } else {
-        fabbrica(radice.NPCifra).avvia(radice.document, radice.sessionStorage);
+        fabbrica(radice.NPCifra, radice.NPXlsx).avvia(radice.document, radice.sessionStorage);
     }
-})(typeof self !== 'undefined' ? self : this, function (C) {
+})(typeof self !== 'undefined' ? self : this, function (C, X) {
     'use strict';
 
-    const STILE_TABELLA = 'border-collapse:collapse; table-layout:fixed; width:100%;';
-    const STILE_TH = 'background:#2e3e6a; color:#ffffff; font-weight:bold; border:1px solid #000000; padding:6px; text-align:center;';
-    const STILE_TD = 'border:1px solid #000000; padding:6px; text-align:center;';
     const INTESTAZIONI = ['ID', 'DATA INSERIMENTO', 'TIPOLOGIA', 'LUOGO', 'DATA EVENTO', 'ORA EVENTO', 'DESCRIZIONE', 'COINVOLGIMENTO', 'PROVE', 'SEGNALATO', 'MATRICOLA'];
 
     function data(t) {
@@ -64,29 +61,8 @@
         ];
     }
 
-    function esc(s) {
-        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-    }
-
-    function htmlExcel(tabella) {
-        let html = '<table style=\'' + STILE_TABELLA + '\'><thead><tr>';
-        for (const t of INTESTAZIONI) {
-            html += '<th style=\'' + STILE_TH + '\'>' + esc(t) + '</th>';
-        }
-        html += '</tr></thead><tbody>';
-        for (const r of tabella) {
-            html += '<tr>';
-            for (const c of r) {
-                html += '<td style=\'' + STILE_TD + '\'>' + esc(c) + '</td>';
-            }
-            html += '</tr>';
-        }
-        return html + '</tbody></table>';
-    }
-
-    function nomeFile(d) {
-        const due = (n) => String(n).padStart(2, '0');
-        return 'segnalazioni_' + d.getFullYear() + due(d.getMonth() + 1) + due(d.getDate()) + '_' + due(d.getHours()) + due(d.getMinutes()) + due(d.getSeconds()) + '.xls';
+    function xlsx(tabella) {
+        return X.creaXlsx(INTESTAZIONI, tabella, 'Segnalazioni');
     }
 
     function avvia(doc, archivio) {
@@ -319,18 +295,11 @@
         }
 
         doc.getElementById('esporta').addEventListener('click', function () {
-            const blob = new Blob(['\ufeff' + htmlExcel(tabella)], { type: 'application/vnd.ms-excel;charset=utf-8' });
-            const a = doc.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = nomeFile(new Date());
-            doc.body.appendChild(a);
-            a.click();
-            a.remove();
-            setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+            X.scarica(doc, X.nomeFile('segnalazioni', new Date()), xlsx(tabella));
         });
 
         inizia().catch((e) => messaggio('Errore: ' + e.message, true));
     }
 
-    return { colonne, htmlExcel, nomeFile, recordDi, avvia };
+    return { colonne, xlsx, recordDi, avvia };
 });

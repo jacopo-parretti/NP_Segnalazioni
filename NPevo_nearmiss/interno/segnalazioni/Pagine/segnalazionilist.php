@@ -96,6 +96,7 @@ $schema = schema_assicura();
 <script src="../../../js/vendor/nacl-fast.js?v=<?= (int) @filemtime(__DIR__ . '/../../../js/vendor/nacl-fast.js') ?>"></script>
 <script src="../../../js/vendor/scrypt.js?v=<?= (int) @filemtime(__DIR__ . '/../../../js/vendor/scrypt.js') ?>"></script>
 <script src="../../../js/cifra.js?v=<?= (int) @filemtime(__DIR__ . '/../../../js/cifra.js') ?>"></script>
+<script src="../../../js/xlsx.js?v=<?= (int) @filemtime(__DIR__ . '/../../../js/xlsx.js') ?>"></script>
 <script src="../../../js/segnalazioni.js?v=<?= (int) @filemtime(__DIR__ . '/../../../js/segnalazioni.js') ?>"></script>
 <?php endif; ?>
 </body>

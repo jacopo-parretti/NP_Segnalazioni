@@ -8,6 +8,7 @@ const { spawnSync } = require('node:child_process');
 
 const C = require(path.join(__dirname, '..', 'NPmonitor', 'js', 'cifra.js'));
 const V = require(path.join(__dirname, '..', 'NPevo_nearmiss', 'js', 'segnalazioni.js'));
+const X = require(path.join(__dirname, '..', 'NPevo_nearmiss', 'js', 'xlsx.js'));
 
 const PHP = process.env.PHP_BIN || path.join(process.env.LOCALAPPDATA || '', 'php82', 'php.exe');
 const BANCO = path.join(__dirname, 'php', 'banco.php');
@@ -244,11 +245,44 @@ test('S7: export Excel con intestazione blu, bordi neri, colonne di oggi e ID co
     const tabella = [nuova, storica].map((r) => V.colonne(r, V.recordDi(r, g.segreta)));
     assert.deepEqual(tabella[0], ['S15', '15/10/2026', 'T', 'L', '14/10/2026', '08:05', '<b>x</b> & "y"', 'C', 'SI', 'NO', '']);
     assert.deepEqual(tabella[1], ['S3', '23/10/2025 08:12:44', '', '', '', '', 'd', '', 'NO', 'SI', '1234']);
-    const html = V.htmlExcel(tabella);
-    assert.ok(html.startsWith('<table style=\'border-collapse:collapse; table-layout:fixed; width:100%;\'><thead><tr><th style=\'background:#2e3e6a; color:#ffffff; font-weight:bold; border:1px solid #000000; padding:6px; text-align:center;\'>ID</th>'));
-    assert.equal((html.match(/<th /g) || []).length, 11);
-    assert.ok(html.includes('<td style=\'border:1px solid #000000; padding:6px; text-align:center;\'>S15</td>'));
-    assert.ok(html.includes('&lt;b&gt;x&lt;/b&gt; &amp; &quot;y&quot;'));
-    assert.ok(!html.includes('<b>x</b>'));
-    assert.match(V.nomeFile(new Date(2026, 9, 15, 9, 5, 7)), /^segnalazioni_20261015_090507\.xls$/);
+    const file = apriZip(V.xlsx(tabella));
+    assert.deepEqual(Object.keys(file).sort(), ['[Content_Types].xml', '_rels/.rels', 'xl/_rels/workbook.xml.rels', 'xl/styles.xml', 'xl/workbook.xml', 'xl/worksheets/sheet1.xml']);
+    const foglio = file['xl/worksheets/sheet1.xml'];
+    assert.equal((foglio.match(/<row r="1">.*?<\/row>/)[0].match(/s="1"/g) || []).length, 11);
+    assert.ok(foglio.includes('<t xml:space="preserve">S15</t>'));
+    assert.ok(foglio.includes('&lt;b&gt;x&lt;/b&gt; &amp; &quot;y&quot;'));
+    assert.ok(!foglio.includes('<b>x</b>'));
+    assert.ok(foglio.includes('<autoFilter ref="A1:K3"/>'));
+    assert.ok(file['xl/styles.xml'].includes('FF2E3E6A'));
+    assert.ok(file['xl/workbook.xml'].includes('name="Segnalazioni"'));
+    assert.match(X.nomeFile('segnalazioni', new Date(2026, 9, 15, 9, 5, 7)), /^segnalazioni_20261015_090507\.xlsx$/);
+});
+
+function apriZip(u8) {
+    const v = new DataView(u8.buffer, u8.byteOffset, u8.byteLength);
+    const file = {};
+    let i = 0;
+    while (v.getUint32(i, true) === 0x04034b50) {
+        assert.equal(v.getUint16(8, true), 0);
+        const crc = v.getUint32(i + 14, true);
+        const n = v.getUint32(i + 18, true);
+        const lNome = v.getUint16(i + 26, true);
+        const lExtra = v.getUint16(i + 28, true);
+        const nome = Buffer.from(u8.subarray(i + 30, i + 30 + lNome)).toString('utf8');
+        const dati = u8.subarray(i + 30 + lNome + lExtra, i + 30 + lNome + lExtra + n);
+        assert.equal(X.crc32(dati), crc);
+        file[nome] = Buffer.from(dati).toString('utf8');
+        i += 30 + lNome + lExtra + n;
+    }
+    assert.equal(v.getUint32(i, true), 0x02014b50);
+    return file;
+}
+
+test('xlsx: CRC32 standard, colonne oltre la Z, caratteri non validi in XML tolti', () => {
+    assert.equal(X.crc32(new TextEncoder().encode('123456789')), 0xCBF43926);
+    assert.equal(X.colonna(0), 'A');
+    assert.equal(X.colonna(25), 'Z');
+    assert.equal(X.colonna(26), 'AA');
+    const file = apriZip(X.creaXlsx(['a'], [['x\u0001y\nz']], 'Prova'));
+    assert.ok(file['xl/worksheets/sheet1.xml'].includes('<t xml:space="preserve">xy\nz</t>'));
 });
